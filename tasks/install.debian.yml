@@ -1,7 +1,7 @@
 ---
 - name: Establish some role-related facts
   set_fact:
-    mongodb_major_version: "{{ mongodb_version[0:3] | string }}"
+    mongodb_major_version: "{{ mongodb_version[0:3] }}"
 
 - name: Disable transparent huge pages on systemd systems
   include_tasks: disable_transparent_hugepages.yml
@@ -11,14 +11,13 @@
 
 - name: Add APT key
   apt_key:
-    keyserver: "{{ mongodb_apt_keyserver if not mongodb_apt_key_from_url|bool else omit }}"
-    url: "{{ mongodb_apt_key_url[mongodb_major_version] if mongodb_apt_key_from_url|bool else omit }}"
+    keyserver: "{{ mongodb_apt_keyserver }}"
     id: "{{ mongodb_apt_key_id[mongodb_major_version] }}"
   when: mongodb_package == 'mongodb-org'
 
 - name: Fail when used wrong mongodb_version variable
   fail:
-    msg: "mongodb_version variable should be '3.6' or '4.0', '4.2' or '4.4'"
+    msg: "mongodb_version variable should be '3.6' or '4.0', '4.2', '4.4' or '6.0'"
   when: (mongodb_package == 'mongodb-org' and
         (mongodb_version is not defined
          or mongodb_repository[mongodb_major_version] is not defined))
@@ -45,7 +44,7 @@
   changed_when: false
   check_mode: no
   when: mongodb_use_numa | bool
-
+  
 - name: Don't use NUMA if it is unavailable on host
   set_fact:
     mongodb_use_numa: false
